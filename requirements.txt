@@ -1,0 +1,19 @@
+# Core Libraries
+pandas
+numpy
+scikit-learn
+
+# Web Framework
+streamlit
+
+# Visualization
+plotly
+matplotlib
+seaborn
+
+# (Optional Utility)
+joblib
+tqdm
+python-docx
+pillow
+
