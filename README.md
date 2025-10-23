@@ -538,9 +538,9 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 **Utkarsh Sharma**
 
 - 📧 Email: nany23111996@gmail.com
-- 💼 LinkedIn: [Your LinkedIn Profile](https://www.linkedin.com/in/yourprofile)
-- 🐙 GitHub: [@yourusername](https://github.com/yourusername)
-- 🌐 Portfolio: [Your Website](https://your-website.com)
+- 💼 LinkedIn: [Your LinkedIn Profile](www.linkedin.com/in/utkarsh-sharma-a5a17936b)
+- 🐙 GitHub: [@yourusername](https://github.com/utkarsh-world)
+- 🌐 Portfolio: [Your Website] soon to come
 
 ---
 

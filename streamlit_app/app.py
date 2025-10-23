@@ -1,214 +1,174 @@
-"""
-Cybersecurity Web Threat Analysis Dashboard
-==========================================
-
-Main Streamlit application for interactive threat analysis.
-
-Author: Utkarsh Sharma
-"""
-
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import sys
 from pathlib import Path
+import plotly.express as px
 
-# Add src to path
-sys.path.append(str(Path(__file__).parent.parent / 'src'))
-
-from data_preprocessing import DataPreprocessor
-from feature_engineering import FeatureEngineer
-from anomaly_detector import AnomalyDetector
-from classifier import TrafficClassifier
-import utils
-
-# Page configuration
+# ---- PAGE CONFIG ----
 st.set_page_config(
-    page_title="Web Threat Analysis Dashboard",
-    page_icon="🛡️",
+    page_title="Cybersecurity Web Threat Analysis",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
-custom_css = """
-<style>
-.main {
-    padding: 0rem 1rem;
-}
-.stAlert {
-    padding: 1rem;
-    border-radius: 0.5rem;
-}
-h1 {
-    color: #1f77b4;
-    padding-bottom: 1rem;
-}
-h2 {
-    color: #2c3e50;
-    padding-top: 1rem;
-}
-</style>
-"""
-st.markdown(custom_css, unsafe_allow_html=True)
+# ---- SIDEBAR ----
+with st.sidebar:
+    st.title("Web Threat Analysis Dashboard")
+    st.write("""
+    **Objective:**  
+    Analyze and identify suspicious web traffic using advanced machine learning.
 
+    **Project Highlights:**  
+    - Automatic anomaly detection (Isolation Forest)
+    - Intelligent traffic classification (Random Forest)
+    - Interactive graphs and analysis
+    - Predict on custom or live data
+    - Complete dataset explorer and business insights
+    """)
 
+    st.info("""
+    Use the sections below to:
+    - Explore imported network records
+    - Visualize threat patterns and attack trends
+    - Train, review, and evaluate model output
+    - Predict on new traffic data
+    """)
+
+    st.write("""
+    **Author:** Utkarsh Sharma  
+    **Contact:** utkarshaily2004@gmail.com  
+    **GitHub:** https://github.com/utkarsh-world  
+    """)
+
+    st.markdown("---")
+    st.caption("This dashboard is part of a Cybersecurity ML portfolio focused on data-driven threat defense and attack mitigation best practices.")
+
+# ---- LOAD DATA ----
 @st.cache_data
 def load_data():
-    """Load and cache the dataset."""
-    try:
-        data_path = Path(__file__).parent.parent / 'data' / 'CloudWatch_Traffic_Web_Attack.csv'
-        preprocessor = DataPreprocessor(str(data_path))
-        df = preprocessor.clean_data()
+    data_path = Path(__file__).parent.parent / "data" / "CloudWatch_Traffic_Web_Attack.csv"
+    return pd.read_csv(data_path)
 
-        engineer = FeatureEngineer(df)
-        df = engineer.create_all_features()
+df = load_data()
 
-        return df
-    except Exception as e:
-        st.error(f"Error loading data: {str(e)}")
-        return None
+# ---- NAVIGATION ----
+PAGES = {
+    "Home": "home",
+    "Dataset Explorer": "explorer",
+    "ML Models": "models",
+    "Predict/Upload": "predict",
+    "Visual Analysis": "visuals",
+    "Project Documentation": "docs",
+    "Contact": "contact"
+}
 
+selected_page = st.selectbox(
+    "Go to Section",
+    list(PAGES.keys()),
+    key="mainnav"
+)
 
-def main():
-    """Main application function."""
+st.markdown("---")
 
-    # Sidebar
-    with st.sidebar:
-        st.title("🛡️ Threat Analysis")
-        st.markdown("---")
+# ---- PAGE LOGIC ----
 
-        page = st.radio(
-            "Navigation",
-            ["🏠 Home", "📊 Data Analysis", "🤖 ML Models", "🎯 Predictions"]
-        )
-
-        st.markdown("---")
-        st.markdown("### About")
-        st.info(
-            "This dashboard provides comprehensive analysis of suspicious "
-            "web traffic patterns using machine learning."
-        )
-
-        st.markdown("### Contact")
-        st.markdown("**Utkarsh Sharma**")
-        st.markdown("📧 nany23111996@gmail.com")
-
-    # Load data
-    df = load_data()
-
-    if df is None:
-        st.error("Failed to load data. Please check the data file.")
-        return
-
-    # Main content based on selected page
-    if page == "🏠 Home":
-        show_home(df)
-    elif page == "📊 Data Analysis":
-        show_data_analysis(df)
-    elif page == "🤖 ML Models":
-        show_ml_models(df)
-    elif page == "🎯 Predictions":
-        show_predictions(df)
-
-
-def show_home(df):
-    """Display home page."""
-    st.title("🛡️ Cybersecurity: Web Threat Analysis Dashboard")
-    st.markdown("### Advanced ML-powered Analysis of Suspicious Web Traffic")
-
-    # Key metrics
+def show_home():
+    st.header("Welcome to the Cybersecurity Web Threat Analysis App")
+    st.write("""
+    This project helps identify and classify suspicious web traffic sessions using a real AWS CloudWatch dataset.  
+    It combines exploratory data analysis, feature engineering, two types of machine-learning models, and business-friendly recommendations.
+    """)
+    st.subheader("Project Objective and Value")
+    st.write("""
+    - Stop critical threats and malicious infrastructure reconnaissance  
+    - Detect attacks before they cause harm  
+    - Give security teams rich visual context for decisions  
+    - Empower business leaders with clear summaries and technical proof
+    """)
+    st.subheader("Quick Stats")
     col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.metric("Total Records", f"{len(df):,}")
-
-    with col2:
-        st.metric("Unique IPs", f"{df['src_ip'].nunique()}")
-
-    with col3:
-        st.metric("Countries", f"{df['src_ip_country_code'].nunique()}")
-
-    with col4:
-        st.metric("Total Traffic", "362 MB")
+    col1.metric("Total Records", len(df))
+    col2.metric("Unique IPs", df['src_ip'].nunique())
+    col3.metric("Source Countries", df['src_ip_country_code'].nunique())
+    col4.metric("Total Data (MB)", f"{df['bytes_in'].sum() / 1024 / 1024:.2f}")
 
     st.markdown("---")
 
-    # Overview
-    st.markdown("### 📋 Project Overview")
-    st.markdown("""
-    This project analyzes **282 suspicious web traffic records** from AWS CloudWatch 
-    to detect potential cyber attacks and security threats.
+def show_explorer():
+    st.header("Dataset Explorer")
+    st.write("Browse, filter, and understand the structure of the suspicious web traffic records used in modeling.")
+    st.dataframe(df.head(100), use_container_width=True)
+    st.write("Data Shape:", df.shape)
+    if st.checkbox("Show summary statistics"):
+        st.dataframe(df.describe())
 
-    **Key Features:**
-    - 🤖 Isolation Forest for anomaly detection
-    - 🌲 Random Forest for traffic classification
-    - 📊 Interactive visualizations
-    - 🎯 Real-time threat prediction
+def show_models():
+    st.header("Machine Learning Models")
+    st.write("""
+    **Isolation Forest**: Unsupervised anomaly detection, finds outliers in multivariate space  
+    **Random Forest Classifier**: Supervised model to classify suspicious traffic intensity
     """)
+    st.write("Train and review model performance here. For demonstration, please use the included model scripts to retrain – or invoke models from your 'models' directory directly.")
+    st.warning("This demo does not retrain models in-browser to keep run times fast. Use `train_models.py` for comprehensive retraining.")
 
+def show_predict():
+    st.header("Traffic Session Prediction / Upload Data")
+    st.write("Upload new CSV files or run predictions on the current loaded dataset (if models are trained and available).")
+    st.info("Model must be trained and model `.pkl` files available in `/models`.")
+    uploaded = st.file_uploader("Upload CSV For Prediction", type="csv")
+    if uploaded is not None:
+        df_upload = pd.read_csv(uploaded)
+        st.dataframe(df_upload.head())
+        st.write("You can now use prediction modules/scripts on the uploaded data.")
 
-def show_data_analysis(df):
-    """Display data analysis page."""
-    st.title("📊 Data Analysis")
-
-    st.markdown("### Dataset Overview")
-    st.info(f"Rows: {df.shape[0]} | Columns: {df.shape[1]}")
-
-    st.dataframe(df.head(), use_container_width=True)
-
-    st.markdown("### Statistical Summary")
-    numeric_cols = df.select_dtypes(include=[np.number]).columns[:5]
-    st.dataframe(df[numeric_cols].describe(), use_container_width=True)
-
-    # Visualizations
-    st.markdown("### Geographic Distribution")
+def show_visuals():
+    st.header("Visual Analysis: Threat Patterns & Trends")
+    st.subheader("Traffic by Country")
     country_counts = df['src_ip_country_code'].value_counts()
-    fig = px.bar(x=country_counts.values, y=country_counts.index, orientation='h')
+    fig = px.bar(
+        x=country_counts.index, y=country_counts.values, 
+        labels={"x":"Country", "y":"Sessions"},
+        title="Traffic Origin by Country"
+    )
     st.plotly_chart(fig, use_container_width=True)
 
+    st.subheader("Temporal Analysis")
+    temp = df.groupby(df['creation_time'].str[:13]).size()
+    fig2 = px.line(x=temp.index, y=temp.values, labels={"x":"Hour", "y":"Sessions"}, title="Sessions over Time by Hour")
+    st.plotly_chart(fig2, use_container_width=True)
 
-def show_ml_models(df):
-    """Display ML models page."""
-    st.title("🤖 Machine Learning Models")
+def show_docs():
+    st.header("Project Documentation")
+    st.write("""
+    - **Business Problem:** Detect high-risk web sessions for proactive incident response  
+    - **Data Source:** AWS CloudWatch VPC Flow Logs, 282 suspicious sessions  
+    - **Key Features:** Advanced EDA, Feature Engineering, ML with Isolation Forest and Random Forest  
+    - **Security Recommendations:** Block critical IPs, monitor for outliers, automate future alerting  
+    """)
+    st.write("**Repository:** [GitHub - Web Threat Analysis](https://github.com/YOUR_USERNAME/Web-Threat-Analysis-Cybersecurity)")
+    st.write("**Author:** Utkarsh Sharma")
 
-    model_type = st.selectbox("Select Model", 
-                              ["Isolation Forest", "Random Forest"])
+def show_contact():
+    st.header("Contact & Support")
+    st.write("""
+    - For feedback, bug reports, or collaboration requests, please email **utkarshaily2004@gmail.com**
+    - Project author LinkedIn: (www.linkedin.com/in/utkarsh-sharma-a5a17936b)
+    - GitHub: (https://github.com/utkarsh-world)
+    """)
+    st.markdown("Thank you for exploring the Cybersecurity Threat Dashboard. Stay secure!")
 
-    if model_type == "Isolation Forest":
-        st.markdown("### Isolation Forest - Anomaly Detection")
-
-        contamination = st.slider("Contamination Rate", 0.01, 0.20, 0.05)
-
-        if st.button("Train Model", type="primary"):
-            with st.spinner("Training..."):
-                detector = AnomalyDetector(contamination=contamination)
-                detector.fit(df)
-                result_df = detector.get_anomaly_details(df)
-
-                n_anomalies = (result_df['anomaly_label'] == 'Anomaly').sum()
-                st.success(f"Detected {n_anomalies} anomalies!")
-
-                st.dataframe(result_df.head())
-    else:
-        st.markdown("### Random Forest - Classification")
-        st.info("Model training interface")
-
-
-def show_predictions(df):
-    """Display predictions page."""
-    st.title("🎯 Threat Predictions")
-
-    uploaded_file = st.file_uploader("Upload CSV file", type=['csv'])
-
-    if uploaded_file:
-        pred_df = pd.read_csv(uploaded_file)
-        st.success(f"Loaded {len(pred_df)} records")
-        st.dataframe(pred_df.head())
-
-
-if __name__ == "__main__":
-    main()
+# ---- RENDER PAGE ----
+if selected_page == "Home":
+    show_home()
+elif selected_page == "Dataset Explorer":
+    show_explorer()
+elif selected_page == "ML Models":
+    show_models()
+elif selected_page == "Predict/Upload":
+    show_predict()
+elif selected_page == "Visual Analysis":
+    show_visuals()
+elif selected_page == "Project Documentation":
+    show_docs()
+elif selected_page == "Contact":
+    show_contact()
